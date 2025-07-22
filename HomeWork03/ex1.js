@@ -36,18 +36,21 @@ let initialData0 = [
 const body = document.querySelector(".body");
 const itemsList = document.querySelector(".itemsList");
 const addBtn = document.createElement("button");
+const onlyReviewsEl = document.querySelector(".onlyReviews");
+const resetListBtn = document.querySelector(".resetList");
+
 addBtn.classList.add("addBtn");
 addBtn.textContent = "добавить продукт";
 body.append(addBtn);
 
 const modal = document.getElementById("modal");
-const productName = modal.querySelector(".productName");
-const productReview = modal.querySelector(".productReview");
+const productNameEl = modal.querySelector(".productName");
+const productReviewEl = modal.querySelector(".productReview");
 const addReview = modal.querySelector(".addReview");
 
 const createList = () => {
 	if (!localStorage.getItem("data")) {
-		localStorage.setItem('data',JSON.stringify(initialData0));
+		localStorage.setItem("data", JSON.stringify(initialData0));
 	}
 	initialData = JSON.parse(localStorage.getItem("data"));
 	itemsList.innerHTML = "";
@@ -79,21 +82,50 @@ const createList = () => {
 		reviewsUl.classList.add("hidden");
 		divItem.append(itemName);
 		divItem.append(reviewsUl);
-		itemsList.append(divItem);
+		if (onlyReviews.checked) {
+			if (element.reviews.length > 0) {
+				console.log(element.reviews.length);
+				itemsList.append(divItem);
+			}
+		} else {
+			itemsList.append(divItem);
+		}
 	});
 };
+
+onlyReviews.addEventListener("click", function (e) {
+	createList();
+});
+
+resetListBtn.addEventListener("click", function (e) {
+	initialData = initialData0;
+	saveData();
+});
 
 addBtn.addEventListener("click", function (e) {
 	modal.style.display = "flex";
 });
+
+addReview.addEventListener("click", function (e) {
+	modal.style.display = "none";
+	const productName = productNameEl.value;
+	const productReview = productReviewEl.value;
+	const review = {
+		id: "5",
+		text: productReview,
+	};
+	let product = {
+		product: productName,
+		reviews: [review],
+	};
+	initialData.push(product);
+	saveData();
+});
+
 document.addEventListener("mousedown", function (e) {
 	if (!modal.contains(e.target) && e.target !== addBtn) {
 		modal.style.display = "none";
 	}
-});
-
-addReview.addEventListener("click", function (e) {
-	modal.style.display = "none";
 });
 
 itemsList.addEventListener("click", function (e) {
@@ -116,15 +148,21 @@ itemsList.addEventListener("click", function (e) {
 					element.reviews.forEach((review) => {
 						if (review.text != reviewEl.textContent) {
 							newEl.push(review);
+						} else {
+							console.log("not add ", review);
 						}
 					});
 					element.reviews = newEl;
-					localStorage.setItem('data',JSON.stringify(initialData));
-					createList();
 				});
+				console.log(initialData);
+				saveData();
 			});
 		}
 	});
 });
 
 createList();
+function saveData() {
+	localStorage.setItem("data", JSON.stringify(initialData));
+	createList();
+}
